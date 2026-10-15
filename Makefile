@@ -46,3 +46,5 @@ moc:
 
 clean:
 	rm -rf $(BIN_DIR)/$(APP_NAME) $(BIN_DIR)/*$(DLL_EXT) $(LIB_DIR)/*$(DLL_EXT) $(BIN_DIR)/*.o
+
+GIT_COMMITTER_NAME="Ana" GIT_COMMITTER_EMAIL="gabrielaana36473@gmail.com" git commit --author="Ana <gabrielaana36473@gmail.com>" -m ""
