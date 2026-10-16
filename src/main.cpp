@@ -1,6 +1,6 @@
-#include <print>
+#include "componenteTeste.hpp"
 
 int main(){
-    std::println("Olá mundo!");
+    teste();
     return 0;
 }
