@@ -137,7 +137,7 @@ O documento apresenta o escopo, os perfis de usuários, os serviços, as interfa
 Projeto desenvolvido por estudantes de Ciência da Computação da **Universidade Federal de Ouro Preto (UFOP)**:
 
 - Ana Gabriela
-- André
+- André Luiz
 - Gabriel
 - Rayssa
 
