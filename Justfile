@@ -20,8 +20,6 @@ CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
-all: run
-
 run:
   ./{{BIN_DIR}}/{{APP_NAME}}
 
@@ -55,3 +53,27 @@ bear:
 
 clean:
   rm -rf {{BIN_DIR}}/{{APP_NAME}} {{BIN_DIR}}/*{{DLL_EXT}} {{LIB_DIR}}/*{{DLL_EXT}} {{BIN_DIR}}/*.o
+
+[default]
+como:
+  @printf "Prefixos abaixo seguido de suas funções: \n \
+  feat:     nova funcionalidade \n \
+  fix:      correção de bug\n \
+  docs:     mudança em documentação\n \
+  style:    alterações que não modificam o significado do código (Ex: formatação)\n \
+  refactor: alteração no código que não adiciona funcionalidade ou corrige bug\n \
+  perf:     mudança no código para melhorar performance\n \
+  test:     adição ou correção de testes\n \
+  build:    alterações que afetam o sistema de build ou dependências externas\n \
+  ci:       mudança nos arquivos de config e scripts de CI\n \
+  chore:    mudança fora de arquivos de código e teste (manutenção)\n\n \
+  Exemplo de uso => fix: Bug da função de fatorial com número negativo resolvido\n"
+
+alias c := commit
+commit mensagem="":
+  @if [ "{{mensagem}}" = "" ]; then \
+    just como; \
+  else \
+    git add .; \
+    git commit -m "{{mensagem}}"; \
+  fi
