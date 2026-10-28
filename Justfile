@@ -20,12 +20,31 @@ CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
+
+# Tutorial de texto de commit
+[default]
+como:
+  @printf "Prefixos abaixo seguido de suas funções: \n \
+  feat:     nova funcionalidade \n \
+  fix:      correção de bug\n \
+  docs:     mudança em documentação\n \
+  style:    alterações que não modificam o significado do código (Ex: formatação)\n \
+  refactor: alteração no código que não adiciona funcionalidade ou corrige bug\n \
+  perf:     mudança no código para melhorar performance\n \
+  test:     adição ou correção de testes\n \
+  build:    alterações que afetam o sistema de build ou dependências externas\n \
+  ci:       mudança nos arquivos de config e scripts de CI\n \
+  chore:    mudança fora de arquivos de código e teste (manutenção)\n\n \
+  Exemplo de uso => fix: Bug da função de fatorial com número negativo resolvido\n"
+
+# Runner do app
 run:
   ./{{BIN_DIR}}/{{APP_NAME}}
-
+# Builder do app
 build:
   {{CXX}} {{COMPILE_FLAGS}} {{SRC_DIR}}/*.cpp {{LIB_DIR}}/*{{DLL_EXT}} -o {{BIN_DIR}}/{{APP_NAME}} {{QT_LIBS}} {{QT_INCLUDE}} -L{{LIB_DIR}}
 
+# Builder de DLL
 build-dll dll-name='*':
   @for pasta in {{SRC_DIR}}/{{dll-name}}/; do \
     if [ -d "$pasta" ]; then \
@@ -44,32 +63,21 @@ build-dll dll-name='*':
     echo "Sucesso"; \
   done
 
+# Comando auxiliar do builder de DLL
+[private]
 moc pasta nome:
   @{{MOC_BIN}} --no-notes {{INCLUDE_DIR}}/{{nome}}.hpp -o {{pasta}}/moc_{{nome}}.cpp
 
-# Comando util para gerar o compile_commands.json para clangd parar de apitar erros inexistentes
+# Comando util para gerar o compile_commands.json para clangd parar de apitar erros
 bear:
   bear -- just build
 
+# Deletador de .so e EXEs
 clean:
   rm -rf {{BIN_DIR}}/{{APP_NAME}} {{BIN_DIR}}/*{{DLL_EXT}} {{LIB_DIR}}/*{{DLL_EXT}} {{BIN_DIR}}/*.o
 
-[default]
-como:
-  @printf "Prefixos abaixo seguido de suas funções: \n \
-  feat:     nova funcionalidade \n \
-  fix:      correção de bug\n \
-  docs:     mudança em documentação\n \
-  style:    alterações que não modificam o significado do código (Ex: formatação)\n \
-  refactor: alteração no código que não adiciona funcionalidade ou corrige bug\n \
-  perf:     mudança no código para melhorar performance\n \
-  test:     adição ou correção de testes\n \
-  build:    alterações que afetam o sistema de build ou dependências externas\n \
-  ci:       mudança nos arquivos de config e scripts de CI\n \
-  chore:    mudança fora de arquivos de código e teste (manutenção)\n\n \
-  Exemplo de uso => fix: Bug da função de fatorial com número negativo resolvido\n"
-
 alias c := commit
+# Comando de commit rápido
 commit mensagem="":
   @if [ "{{mensagem}}" = "" ]; then \
     just como; \
