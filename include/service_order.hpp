@@ -1,6 +1,6 @@
 #pragma once
 
-enum class OrderStatus { OrcamentoPendente, PendenteAceitacao, RecusadaFaltaEstoque };
+#include "order_status.hpp"
 
 class ServiceOrder {
     int id_;

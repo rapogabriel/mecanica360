@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
 #include <vector>
-#include "ServiceOrder.hpp"
+#include "service_order.hpp"
 
 class ServiceOrderRepository {
 public:
