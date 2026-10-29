@@ -32,8 +32,24 @@ public:
         return resultado;
     }
 
-    // TODO (#6): implementar as buscas abaixo
-    std::vector<ServiceOrder> listByStatus(OrderStatus) const override { return {}; }
-    std::vector<ServiceOrder> listByClient(int) const override { return {}; }
-    std::vector<ServiceOrder> listByMechanic(int) const override { return {}; }
+    std::vector<ServiceOrder> listByStatus(OrderStatus status) const override {
+        std::vector<ServiceOrder> resultado;
+        for (const auto& [id, os] : ordens_)
+            if (os.status() == status) resultado.push_back(os);
+        return resultado;
+    }
+
+    std::vector<ServiceOrder> listByClient(int clientId) const override {
+        std::vector<ServiceOrder> resultado;
+        for (const auto& [id, os] : ordens_)
+            if (os.clientId() == clientId) resultado.push_back(os);
+        return resultado;
+    }
+
+    std::vector<ServiceOrder> listByMechanic(int mechanicId) const override {
+        std::vector<ServiceOrder> resultado;
+        for (const auto& [id, os] : ordens_)
+            if (os.mechanicId() == mechanicId) resultado.push_back(os);
+        return resultado;
+    }
 };
