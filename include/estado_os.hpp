@@ -1,7 +1,7 @@
 #pragma once
 
-enum class EstadoOS {
-    OrcamentoPendente,
-    PendenteAceitacao,
-    RecusadaFaltaEstoque,
+enum class OrderStatus {
+    PendingQuote,
+    PendingAcceptance,
+    RejectedOutOfStock,
 };

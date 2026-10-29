@@ -1,8 +1,8 @@
 #pragma once
 
-enum class ErroOS {
-    AcessoNegado,
-    TransicaoInvalida,
-    DadosInvalidos,
-    OSNaoEncontrada,
+enum class OrderError {
+    AccessDenied,
+    InvalidTransition,
+    InvalidData,
+    ServiceOrderNotFound,
 };

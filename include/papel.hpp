@@ -1,8 +1,8 @@
 #pragma once
 
-enum class Papel {
-    Mecanico,
-    Almoxerife,
-    Cliente,
-    Gerente,
+enum class Role {
+    Mechanic,
+    Stockroom,
+    Customer,
+    Manager,
 };
