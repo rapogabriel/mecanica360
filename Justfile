@@ -37,6 +37,10 @@ como:
   chore:    mudança fora de arquivos de código e teste (manutenção)\n\n \
   Exemplo de uso => fix: Bug da função de fatorial com número negativo resolvido\n"
 
+# Cria as pastas
+start:
+  @mkdir -p bin doc include lib lib_backup src test test/func test/unit
+
 # Runner do app
 run:
   ./{{BIN_DIR}}/{{APP_NAME}}
