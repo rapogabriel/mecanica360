@@ -17,7 +17,7 @@ enum class OrderStatus {
     RejectedLackOfStock
 };
 
-// Erros de negocio (a grafia AcessDenied segue a especificacao e os testes).
+// Erros de negocio 
 enum class OrderError {
     AcessDenied,
     InvalidData,
