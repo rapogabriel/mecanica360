@@ -1,0 +1,9 @@
+bin/*.o
+bin/*.dll
+bin/*.so
+bin/app
+doc/html
+doc/latex
+.cache
+compile_commands.json
+lib_backup/*.so
