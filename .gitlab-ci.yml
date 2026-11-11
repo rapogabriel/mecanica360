@@ -1,0 +1,40 @@
+stages:
+  - docs
+
+variables:
+  # Baixa o tema doxygen-awesome-css (submódulo) junto com o código
+  GIT_SUBMODULE_STRATEGY: recursive
+  DEBIAN_FRONTEND: noninteractive
+
+# Gera a documentação. Roda em Merge Requests (para validar)
+# e na branch padrão (para publicar).
+.doxygen-base:
+  stage: docs
+  image: ubuntu:24.04
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq doxygen graphviz
+  script:
+    - doxygen Doxyfile
+    - mkdir -p public
+    - cp -r doc/html/. public/
+
+# Em Merge Requests: só gera, para garantir que a documentação compila.
+docs:build:
+  extends: .doxygen-base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+# Na branch padrão: publica no GitLab Pages.
+pages:
+  extends: .doxygen-base
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  pages: true
+  artifacts:
+    paths:
+      - public
