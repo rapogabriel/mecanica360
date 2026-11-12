@@ -7,3 +7,4 @@ doc/latex
 .cache
 compile_commands.json
 lib_backup/*.so
+/bin/
