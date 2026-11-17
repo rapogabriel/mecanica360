@@ -21,6 +21,7 @@ COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
 teste:
+  mkdir -p bin/
   {{CXX}} {{COMPILE_FLAGS}} tests/*/*.cpp tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}}
   ./{{BIN_DIR}}/{{APP_NAME}}
 
