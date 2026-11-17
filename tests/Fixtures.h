@@ -35,7 +35,7 @@ inline OpeningData validOpening(int clientId = 10) {
 /// Insere uma OS ja cadastrada e a leva ao estado pedido (via dominio). Devolve o id gerado.
 inline int seed(ServiceOrderRepository& repo, int clientId, int mechanicId,
                 OrderStatus status = OrderStatus::PendingBudget) {
-    ServiceOrder so = ServiceOrder::create(validOpening(clientId), mechanicId);
+    ServiceOrder so = ServiceOrder{validOpening(clientId), mechanicId};
     if (status == OrderStatus::PendingAcceptance) {
         so.attachBudget(Budget(800.0, 300.0, 3));
         so.transition(status, 5);

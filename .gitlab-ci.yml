@@ -13,8 +13,9 @@ variables:
   image: ubuntu:24.04
   before_script:
     - apt-get update -qq
-    - apt-get install -y -qq doxygen graphviz
+    - apt-get install -y -qq doxygen graphviz just
   script:
+    - just teste
     - doxygen Doxyfile
     - mkdir -p public
     - cp -r doc/html/. public/
