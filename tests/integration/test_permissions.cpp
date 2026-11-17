@@ -1,9 +1,9 @@
 // Matriz de permissoes por perfil (Customer, Mechanic, Stockroom, Manager).
 #include <limits>
 
-#include "Fixtures.h"
+#include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "TestFramework.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 

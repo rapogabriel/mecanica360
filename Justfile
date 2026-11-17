@@ -20,6 +20,9 @@ CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
+teste:
+  {{CXX}} {{COMPILE_FLAGS}} {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}}
+  rm -rf {{BIN_DIR}}/{{APP_NAME}}
 
 # Tutorial de texto de commit
 [default]
