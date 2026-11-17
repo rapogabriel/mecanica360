@@ -1,7 +1,7 @@
 // Tarefa #18: CU-02 (searchNewSO e sendBudget). Cenarios CT-02.1 a CT-02.6.
-#include "Fixtures.h"
+#include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "TestFramework.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 

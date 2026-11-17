@@ -1,7 +1,7 @@
 // Tarefa #20: CU-03 (rejectDueLackOfStock). Cenarios CT-03.1 a CT-03.4.
-#include "Fixtures.h"
+#include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "TestFramework.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 
