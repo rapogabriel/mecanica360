@@ -14,7 +14,7 @@ variables:
   before_script:
     - apt-get update -qq
     - apt-get install -y -qq doxygen graphviz curl
-    - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
+    - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
   script:
     - just teste
     - doxygen Doxyfile
