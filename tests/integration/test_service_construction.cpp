@@ -1,7 +1,7 @@
 // Tarefa #13: ServiceOrderService (construtor e injecao do repositorio).
-#include "Fixtures.h"
+#include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "TestFramework.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 

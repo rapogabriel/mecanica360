@@ -1,9 +1,9 @@
 // Integracao ServiceOrderService <-> ServiceOrderRepository (abstracao) e fluxo completo.
 #include <functional>
 
-#include "Fixtures.h"
+#include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "TestFramework.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 

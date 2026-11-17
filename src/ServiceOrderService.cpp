@@ -62,7 +62,7 @@ std::expected<int, OrderError> ServiceOrderService::openSO(const User& user,
                                                            const OpeningData& data) {
     if (user.role() != Role::Mechanic) return std::unexpected(OrderError::AcessDenied);
     if (!validOpening(data)) return std::unexpected(OrderError::InvalidData);
-    return repository_.insert(ServiceOrder::create(data, user.id()));
+    return repository_.insert(ServiceOrder{data, user.id()});
 }
 
 // #18 CU-02 ------------------------------------------------------------------
