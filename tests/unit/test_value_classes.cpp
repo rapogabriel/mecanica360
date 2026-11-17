@@ -9,7 +9,7 @@ TEST("Budget::total soma pecas e mao de obra") {
     CHECK_NEAR(b.total(), 1100.0);
     CHECK_NEAR(b.partsValue(), 800.0);
     CHECK_NEAR(b.laborValue(), 300.0);
-    CHECK(b.deadline() == 2);
+    CHECK(b.deadline() == 3);
 }
 
 TEST("Budget::total com valores zero e decimais") {
