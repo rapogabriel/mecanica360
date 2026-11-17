@@ -1,15 +1,15 @@
 // Tarefa #13 (repositorio): FakeRepository como implementacao de ServiceOrderRepository.
 #include <stdexcept>
 
-#include "Fixtures.h"
-#include "TestFramework.h"
+#include "../Fixtures.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 
 TEST("FakeRepository: insert atribui ids unicos, sequenciais a partir de 1") {
     FakeRepository repo;
-    const int a = repo.insert(ServiceOrder::create(validOpening(), 7));
-    const int b = repo.insert(ServiceOrder::create(validOpening(), 7));
+    const int a = repo.insert(ServiceOrder{validOpening(), 7});
+    const int b = repo.insert(ServiceOrder{validOpening(), 7});
     CHECK(a == 1);
     CHECK(b == 2);
     CHECK(repo.findById(a)->id() == a);
@@ -20,7 +20,7 @@ TEST("FakeRepository: insert atribui ids unicos, sequenciais a partir de 1") {
 TEST("FakeRepository: usado pela abstracao ServiceOrderRepository") {
     FakeRepository fake;
     ServiceOrderRepository& repo = fake;
-    const int id = repo.insert(ServiceOrder::create(validOpening(), 7));
+    const int id = repo.insert(ServiceOrder{validOpening(), 7});
     CHECK(repo.findById(id).has_value());
 }
 
@@ -46,7 +46,7 @@ TEST("FakeRepository: update substitui a OS de mesmo id") {
 
 TEST("FakeRepository: update de id inexistente lanca out_of_range e nao insere") {
     FakeRepository repo;
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     so.assignId(42);
     CHECK_THROWS(repo.update(so), std::out_of_range);
     CHECK(repo.listAll().empty());

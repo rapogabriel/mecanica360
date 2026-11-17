@@ -2,13 +2,13 @@
 #include <ctime>
 #include <stdexcept>
 
-#include "Fixtures.h"
-#include "TestFramework.h"
+#include "../Fixtures.h"
+#include "../TestFramework.h"
 
 using namespace fx;
 
 TEST("ServiceOrder::create inicia em PendingBudget, sem orcamento, sem historico e sem id") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     CHECK(so.id() == 0);
     CHECK(so.clientId() == 10);
     CHECK(so.mechanicId() == 7);
@@ -26,7 +26,7 @@ TEST("ServiceOrder::create inicia em PendingBudget, sem orcamento, sem historico
 }
 
 TEST("ServiceOrder::assignId define o identificador") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     so.assignId(42);
     CHECK(so.id() == 42);
 }
@@ -35,7 +35,7 @@ TEST("ServiceOrder::canTransition so admite PendingBudget -> PendingAcceptance/R
     const OrderStatus all[] = {OrderStatus::PendingBudget, OrderStatus::PendingAcceptance,
                                OrderStatus::RejectedLackOfStock};
     for (OrderStatus from : all) {
-        ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+        ServiceOrder so = ServiceOrder{validOpening(), 7};
         if (from != OrderStatus::PendingBudget) so.transition(from, 5);
         for (OrderStatus to : all) {
             const bool expected =
@@ -46,7 +46,7 @@ TEST("ServiceOrder::canTransition so admite PendingBudget -> PendingAcceptance/R
 }
 
 TEST("ServiceOrder::transition registra historico com responsavel e instante") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     const std::time_t before = std::time(nullptr);
     so.transition(OrderStatus::PendingAcceptance, 5);
     const std::time_t after = std::time(nullptr);
@@ -60,7 +60,7 @@ TEST("ServiceOrder::transition registra historico com responsavel e instante") {
 }
 
 TEST("ServiceOrder::transition para RejectedLackOfStock mantem OS sem orcamento") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     so.transition(OrderStatus::RejectedLackOfStock, 5);
     CHECK(so.state() == OrderStatus::RejectedLackOfStock);
     CHECK(so.history().size() == 1);
@@ -68,7 +68,7 @@ TEST("ServiceOrder::transition para RejectedLackOfStock mantem OS sem orcamento"
 }
 
 TEST("ServiceOrder::transition invalida lanca logic_error e nao altera a OS") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     so.attachBudget(Budget(800.0, 300.0, 3));
     so.transition(OrderStatus::PendingAcceptance, 5);
     const auto before = snap(so);
@@ -80,7 +80,7 @@ TEST("ServiceOrder::transition invalida lanca logic_error e nao altera a OS") {
 }
 
 TEST("ServiceOrder::attachBudget anexa o orcamento e budget() o devolve") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     CHECK(!so.budget().has_value());
     so.attachBudget(Budget(800.0, 300.0, 3));
     REQUIRE(so.budget().has_value());
@@ -89,14 +89,14 @@ TEST("ServiceOrder::attachBudget anexa o orcamento e budget() o devolve") {
 }
 
 TEST("ServiceOrder::attachBudget fora de PendingBudget lanca logic_error e nao anexa") {
-    ServiceOrder so = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder so = ServiceOrder{validOpening(), 7};
     so.transition(OrderStatus::RejectedLackOfStock, 5);
     CHECK_THROWS(so.attachBudget(Budget(1.0, 1.0, 1)), std::logic_error);
     CHECK(!so.budget().has_value());
 }
 
 TEST("ServiceOrder: copia e independente da original") {
-    ServiceOrder a = ServiceOrder::create(validOpening(), 7);
+    ServiceOrder a = ServiceOrder{validOpening(), 7};
     ServiceOrder b = a;
     b.transition(OrderStatus::PendingAcceptance, 5);
     CHECK(a.state() == OrderStatus::PendingBudget);
