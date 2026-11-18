@@ -6,7 +6,9 @@
 
 #include "OpeningData.h"
 #include "Types.h"
-#include "ValueClasses.h"
+#include "ValueClasses.hpp"
+#include "Serializable.hpp"
+
 
 namespace mecanica360 {
 
@@ -14,11 +16,13 @@ namespace mecanica360 {
 // Decisao sobre o ID: a ordem nasce sem ID (id() == 0) e o repositorio
 // atribui o identificador unico em insert(), devolvendo-o ao chamador.
 // Assim a unicidade (CT-01.2) fica a cargo de quem guarda as ordens.
-class ServiceOrder {
+class ServiceOrder: public ISerializable{
 public:
     // Cria a ordem em PendingBudget, sem orcamento e sem historico.
+   
     static ServiceOrder create(const OpeningData& data, int mechanicId);
-
+    ServiceOrder() = default;
+    
     int id() const;
     int clientId() const;
     int mechanicId() const;
@@ -39,8 +43,11 @@ public:
     void transition(OrderStatus target, int responsibleId);
     void attachBudget(const Budget& budget);
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
 private:
-    ServiceOrder() = default;
+    
 
     int id_ = 0;
     int clientId_ = 0;

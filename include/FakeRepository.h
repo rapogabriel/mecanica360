@@ -21,7 +21,7 @@ public:
 
 private:
     std::vector<ServiceOrder> orders_;
-    int nextId_ = 1;
+    int nextId_ = 0;
 };
 
 }  // namespace mecanica360

@@ -53,4 +53,86 @@ void ServiceOrder::attachBudget(const Budget& budget) {
     budget_ = budget;
 }
 
+void ServiceOrder::serialize(std::ofstream& out) const {
+    using namespace serialization_utils;
+
+    writePrimitive(out, id_);
+    writePrimitive(out, clientId_);
+    writePrimitive(out, mechanicId_);
+
+    vehicle_.serialize(out);
+
+    writeString(out, diagnosis_);
+
+    // Serializando vetor de peças
+    size_t partsCount = parts_.size();
+    writePrimitive(out, partsCount);
+    for (const auto& part : parts_) {
+        part.serialize(out);
+    }
+
+    writePrimitive(out, labor_);
+    writePrimitive(out, deadline_);
+    writePrimitive(out, state_);
+
+    // Serializando std::optional<Budget>
+    bool hasBudget = budget_.has_value();
+    writePrimitive(out, hasBudget);
+    if (hasBudget) {
+        budget_->serialize(out);
+    }
+
+    // Serializando vetor de histórico
+    size_t historyCount = history_.size();
+    writePrimitive(out, historyCount);
+    for (const auto& hist : history_) {
+        hist.serialize(out);
+    }
+}
+
+void ServiceOrder::deserialize(std::ifstream& in) {
+    using namespace serialization_utils;
+
+    readPrimitive(in, id_);
+    readPrimitive(in, clientId_);
+    readPrimitive(in, mechanicId_);
+
+    vehicle_.deserialize(in);
+
+    readString(in, diagnosis_);
+
+    // Desserializando vetor de peças
+    size_t partsCount;
+    readPrimitive(in, partsCount);
+    parts_.resize(partsCount);
+    for (size_t i = 0; i < partsCount; ++i) {
+        parts_[i].deserialize(in);
+    }
+
+    readPrimitive(in, labor_);
+    readPrimitive(in, deadline_);
+    readPrimitive(in, state_);
+
+    // Desserializando std::optional<Budget>
+    bool hasBudget;
+    readPrimitive(in, hasBudget);
+    if (hasBudget) {
+        Budget b;
+        b.deserialize(in);
+        budget_ = b;
+    } else {
+        budget_ = std::nullopt;
+    }
+
+    // Desserializando vetor de histórico
+    size_t historyCount;
+    readPrimitive(in, historyCount);
+    history_.clear();
+    for (size_t i = 0; i < historyCount; ++i) {
+        StatusHistory hist;
+        hist.deserialize(in);
+        history_.push_back(hist);
+    }
+}
+
 }  // namespace mecanica360
