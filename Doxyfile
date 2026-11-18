@@ -1,0 +1,88 @@
+# Doxyfile (compacto) - Mecânica360
+# Só as opções alteradas; o Doxygen usa o valor padrão para todo o resto.
+# Para ver todas as opções: doxygen -g Doxyfile.completo
+
+#---------------------------------------------------------------------------
+# Projeto
+#---------------------------------------------------------------------------
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Mecânica360"
+PROJECT_BRIEF          = "API da lógica de negócio da oficina mecânica"
+OUTPUT_DIRECTORY       = doc
+OUTPUT_LANGUAGE        = Brazilian
+
+#---------------------------------------------------------------------------
+# Extração
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+
+#---------------------------------------------------------------------------
+# Entrada
+#---------------------------------------------------------------------------
+# Inclua "src" para os .cpp (necessário para os grafos de chamada).
+# Se a pasta não existir, remova "src" daqui.
+INPUT                  = include src README.md
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.md
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+MARKDOWN_SUPPORT       = YES
+
+#---------------------------------------------------------------------------
+# Código-fonte navegável
+#---------------------------------------------------------------------------
+SOURCE_BROWSER         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+#---------------------------------------------------------------------------
+# HTML e tema doxygen-awesome
+#---------------------------------------------------------------------------
+# git clone https://github.com/jothepro/doxygen-awesome-css.git
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_GAMMA  = 80
+# Doxygen >= 1.9.5: descomente a linha abaixo
+HTML_COLORSTYLE        = LIGHT
+HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css
+HTML_EXTRA_FILES       = doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js \
+                         doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js \
+                         doxygen-awesome-css/doxygen-awesome-paragraph-link.js
+# Para ativar modo escuro e botão de copiar, gere um header e edite-o:
+#   doxygen -w html header.html footer.html stylesheet.css Doxyfile
+# e descomente a linha abaixo:
+# HTML_HEADER          = header.html
+
+#---------------------------------------------------------------------------
+# Outros formatos
+#---------------------------------------------------------------------------
+GENERATE_LATEX         = NO
+
+#---------------------------------------------------------------------------
+# Diagramas (Graphviz)
+#---------------------------------------------------------------------------
+HAVE_DOT               = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+UML_LOOK               = YES
+DOT_UML_DETAILS        = YES
+UML_LIMIT_NUM_FIELDS   = 20
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+DOT_TRANSPARENT        = YES
+DOT_GRAPH_MAX_NODES    = 100
+DOT_FONTNAME           = Helvetica
+DOT_FONTSIZE           = 10
