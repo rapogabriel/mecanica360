@@ -1,4 +1,5 @@
 set minimum-version := '1.27.0'
+set shell := ["bash", "-cu"]
 
 # Diretórios e arquivos
 SRC_DIR := "src"
@@ -20,9 +21,19 @@ CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
-teste:
+teste branch='all':
   mkdir -p bin/
-  {{CXX}} {{COMPILE_FLAGS}} tests/*/*.cpp tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}}
+  if [ "{{branch}}" = "all" ]; then \
+    PASTAS=("unit" "func" "integration"); \
+  elif [ "{{branch}}" = "develop" ]; then \
+    PASTAS=("unit" "func"); \
+  elif [ "{{branch}}" = "staging" ]; then \
+    PASTAS=("func" "integration"); \
+  elif [ "{{branch}}" = "main" ]; then \
+    PASTAS=("integration"); \
+  fi; \
+  SUFFPASTAS=("${PASTAS[@]/#/tests/}"); \
+  {{CXX}} {{COMPILE_FLAGS}} ${SUFFPASTAS[@]/%//*.cpp} tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}};
   ./{{BIN_DIR}}/{{APP_NAME}}
 
 # Tutorial de texto de commit
