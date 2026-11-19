@@ -1,4 +1,5 @@
 set minimum-version := '1.27.0'
+set shell := ["bash", "-cu"]
 
 # Diretórios e arquivos
 SRC_DIR := "src"
@@ -20,6 +21,20 @@ CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
 
+teste branch='all':
+  mkdir -p bin/
+  if [ "{{branch}}" = "all" ]; then \
+    PASTAS=("unit" "func" "integration"); \
+  elif [ "{{branch}}" = "develop" ]; then \
+    PASTAS=("unit" "func"); \
+  elif [ "{{branch}}" = "staging" ]; then \
+    PASTAS=("func" "integration"); \
+  elif [ "{{branch}}" = "main" ]; then \
+    PASTAS=("integration"); \
+  fi; \
+  SUFFPASTAS=("${PASTAS[@]/#/tests/}"); \
+  {{CXX}} {{COMPILE_FLAGS}} ${SUFFPASTAS[@]/%//*.cpp} tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}};
+  ./{{BIN_DIR}}/{{APP_NAME}}
 
 # Tutorial de texto de commit
 [default]
@@ -36,6 +51,10 @@ como:
   ci:       mudança nos arquivos de config e scripts de CI\n \
   chore:    mudança fora de arquivos de código e teste (manutenção)\n\n \
   Exemplo de uso => fix: Bug da função de fatorial com número negativo resolvido\n"
+
+# Cria as pastas
+start:
+  @mkdir -p bin doc include lib lib_backup src test test/func test/unit
 
 # Runner do app
 run:
