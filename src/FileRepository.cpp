@@ -1,3 +1,8 @@
+/**
+ * @file FileRepository.cpp
+ * @brief Implementação da persistência em arquivos binários e índice primário para ordens de serviço.
+ */
+
 #include "FileRepository.hpp"
 #include <fstream>
 #include <iostream>

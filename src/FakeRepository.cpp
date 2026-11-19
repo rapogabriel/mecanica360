@@ -1,3 +1,8 @@
+/**
+ * @file FakeRepository.cpp
+ * @brief Implementação em memória do repositório de ordens de serviço para testes automatizados.
+ */
+
 #include "FakeRepository.h"
 
 #include <algorithm>
