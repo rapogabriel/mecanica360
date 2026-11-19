@@ -22,7 +22,6 @@ ServiceOrder::ServiceOrder(const OpeningData& data, int mechanicId) {
     state_ = OrderStatus::PendingBudget;
     budget_ = std::nullopt;
 }
-ServiceOrder::ServiceOrder()=default;
 
 int ServiceOrder::id() const { return id_; }
 int ServiceOrder::clientId() const { return data.clientId; }
