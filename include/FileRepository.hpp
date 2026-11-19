@@ -54,7 +54,6 @@ public:
      * @param indexPath Caminho para o arquivo binário de índice primário.
      */
     FileRepository(const std::string& dataPath, const std::string& indexPath);
-
     int insert(ServiceOrder order) override;
     void update(const ServiceOrder& order) override;
 
@@ -68,3 +67,26 @@ public:
     std::vector<ServiceOrder> findBy(std::function<bool(const ServiceOrder&)> predicate,
                                      size_t batch = 20) const;
     std::optional<ServiceOrder> findById(int id) const override;
+    std::vector<ServiceOrder> listByState(OrderStatus status) const override;
+    std::vector<ServiceOrder> listByCustomer(int clientId) const override;
+    std::vector<ServiceOrder> listByMechanic(int mechanicId) const override;
+    std::vector<ServiceOrder> listAll() const override;
+
+    /**
+     * @brief Lê um lote sequencial de ordens de serviço a partir de uma posição no índice.
+     *
+     * @param startOffset Posição inicial (`std::streampos`) no arquivo de índice.
+     * @param batchSize Número máximo de registros a serem lidos neste lote.
+     * @return Estrutura `BatchResult` contendo as ordens lidas, a próxima posição e o indicador de fim.
+     */
+    BatchResult readBatch(std::streampos startOffset, size_t batchSize) const;
+
+    /**
+     * @brief Calcula o próximo identificador sequencial disponível com base no índice.
+     *
+     * @return Próximo ID inteiro a ser atribuído a uma nova ordem de serviço.
+     */
+    int creatNextId() const;
+};
+
+}  // namespace mecanica360
