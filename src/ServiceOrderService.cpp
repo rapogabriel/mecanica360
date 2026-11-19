@@ -1,3 +1,8 @@
+/**
+ * @file ServiceOrderService.cpp
+ * @brief Implementação do serviço de regras de negócio para ordens de serviço.
+ */
+
 #include "ServiceOrderService.h"
 
 #include <algorithm>
@@ -9,14 +14,35 @@ namespace mecanica360 {
 
 namespace {
 
+/**
+ * @brief Verifica se uma string está vazia ou contém apenas espaços em branco.
+ *
+ * @param s String a ser avaliada.
+ * @return `true` se a string estiver em branco; `false` caso contrário.
+ */
 bool isBlank(const std::string& s) {
     return std::all_of(s.begin(), s.end(),
                        [](unsigned char c) { return std::isspace(c) != 0; });
 }
 
+/**
+ * @brief Verifica se um valor de ponto flutuante é finito e não negativo.
+ *
+ * @param v Valor numérico a ser validado.
+ * @return `true` se `v` for finito e maior ou igual a zero; `false` caso contrário.
+ */
 bool nonNegative(double v) { return std::isfinite(v) && v >= 0.0; }
 
-/** Cliente > 0, placa e diagnostico informados, >= 1 peca valida, mao de obra >= 0, prazo > 0. */
+/**
+ * @brief Valida os dados necessários para a abertura de uma ordem de serviço.
+ *
+ * Exige identificador de cliente positivo, placa e diagnóstico preenchidos,
+ * ao menos uma peça válida (descrição não vazia e quantidade positiva),
+ * valor de mão de obra não negativo e prazo positivo.
+ *
+ * @param d Estrutura com os dados de abertura da ordem.
+ * @return `true` se todos os critérios forem atendidos; `false` caso contrário.
+ */
 bool validOpening(const OpeningData& d) {
     if (d.clientId <= 0) return false;
     if (isBlank(d.vehicle.plate())) return false;
@@ -28,12 +54,23 @@ bool validOpening(const OpeningData& d) {
     return nonNegative(d.labor) && d.deadline > 0;
 }
 
-/** Valores nao negativos e prazo positivo. */
+/**
+ * @brief Valida os valores e o prazo de um orçamento.
+ *
+ * @param b Orçamento a ser verificado.
+ * @return `true` se os valores de peças e mão de obra forem não negativos e o prazo for positivo.
+ */
 bool validBudget(const Budget& b) {
     return nonNegative(b.partsValue()) && nonNegative(b.laborValue()) && b.deadline() > 0;
 }
 
-/** Visibilidade individual de uma OS por perfil. */
+/**
+ * @brief Verifica se um usuário tem permissão para visualizar uma ordem de serviço específica.
+ *
+ * @param user Usuário que solicita o acesso.
+ * @param so Ordem de serviço alvo da consulta.
+ * @return `true` se o perfil do usuário puder visualizar a ordem; `false` caso contrário.
+ */
 bool canSee(const User& user, const ServiceOrder& so) {
     switch (user.role()) {
         case Role::Manager:
@@ -51,12 +88,8 @@ bool canSee(const User& user, const ServiceOrder& so) {
 
 }  // namespace
 
-// #13 ------------------------------------------------------------------------
-
 ServiceOrderService::ServiceOrderService(ServiceOrderRepository& repository)
     : repository_(repository) {}
-
-// #16 CU-01 ------------------------------------------------------------------
 
 std::expected<int, OrderError> ServiceOrderService::openSO(const User& user,
                                                            const OpeningData& data) {
@@ -64,8 +97,6 @@ std::expected<int, OrderError> ServiceOrderService::openSO(const User& user,
     if (!validOpening(data)) return std::unexpected(OrderError::InvalidData);
     return repository_.insert(ServiceOrder{data, user.id()});
 }
-
-// #18 CU-02 ------------------------------------------------------------------
 
 std::expected<std::vector<ServiceOrder>, OrderError> ServiceOrderService::searchNewSO(
     const User& user) {
@@ -81,7 +112,8 @@ std::expected<void, OrderError> ServiceOrderService::sendBudget(const User& user
     auto found = repository_.findById(soId);
     if (!found) return std::unexpected(OrderError::ServiceOrderNotFound);
 
-    ServiceOrder order = *found;  // trabalha numa copia: erros nao alteram o repositorio
+    // Trabalha sobre uma cópia para garantir que erros não alterem o repositório.
+    ServiceOrder order = *found;
     if (!order.canTransition(OrderStatus::PendingAcceptance)) {
         return std::unexpected(OrderError::InvalidTransition);
     }
@@ -90,8 +122,6 @@ std::expected<void, OrderError> ServiceOrderService::sendBudget(const User& user
     repository_.update(order);
     return {};
 }
-
-// #20 CU-03 ------------------------------------------------------------------
 
 std::expected<void, OrderError> ServiceOrderService::rejectDueLackOfStock(const User& user,
                                                                            int soId) {
@@ -108,8 +138,6 @@ std::expected<void, OrderError> ServiceOrderService::rejectDueLackOfStock(const 
     repository_.update(order);
     return {};
 }
-
-// #23 CU-04 ------------------------------------------------------------------
 
 std::expected<ServiceOrder, OrderError> ServiceOrderService::checkSOById(const User& user,
                                                                          int soId) {

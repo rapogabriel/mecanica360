@@ -1,3 +1,8 @@
+/**
+ * @file ServiceOrderService.h
+ * @brief Define o serviço de regras de negócio para gerenciamento de ordens de serviço.
+ */
+
 #pragma once
 
 #include <expected>
@@ -12,49 +17,121 @@
 namespace mecanica360 {
 
 /**
- * @brief Servico de logica de negocio das ordens de servico (Sprint 2, API-M360-1.9).
+ * @brief Serviço responsável pela lógica de negócio das ordens de serviço.
  *
- * Depende da abstracao ServiceOrderRepository, injetada por referencia (agregacao do UML);
- * o repositorio deve sobreviver ao servico.
+ * Depende da abstração `ServiceOrderRepository`, injetada por referência.
+ * O repositório fornecido deve permanecer válido durante todo o ciclo de vida
+ * da instância deste serviço.
  *
- * Estrategia de erros: erros de negocio (OrderError) sao retornados via std::expected;
- * em qualquer erro nenhum registro e alterado. Ordem das verificacoes: permissao,
- * validade dos dados, existencia da OS, visibilidade e estado.
- * Excecoes ficam reservadas a violacoes de contrato do dominio (ServiceOrder, repositorio).
+ * Erros de negócio (`OrderError`) são retornados via `std::expected` sem
+ * alterar nenhum registro persistido. As verificações seguem a ordem:
+ * permissão, validade dos dados, existência da ordem, visibilidade e estado.
+ * Exceções são reservadas a violações de contrato do domínio ou do repositório.
  */
 class ServiceOrderService {
 public:
-    /** @brief Constroi o servico sobre o repositorio injetado. */
+    /**
+     * @brief Constrói o serviço associado a um repositório de ordens de serviço.
+     *
+     * @param repository Referência ao repositório concreto que armazenará as ordens.
+     */
     explicit ServiceOrderService(ServiceOrderRepository& repository);
 
-    /** @brief CU-01 (Mecanico): abre uma OS em PendingBudget e devolve seu identificador.
-     *  Erros: AcessDenied, InvalidData. */
+    /**
+     * @brief Abre uma nova ordem de serviço no estado `PendingBudget`.
+     *
+     * Operação restrita ao perfil de Mecânico.
+     *
+     * @param user Usuário que solicita a abertura da ordem.
+     * @param data Dados iniciais necessários para criação da ordem de serviço.
+     * @return Identificador único da ordem criada ou `OrderError`
+     *         (`AcessDenied`, `InvalidData`).
+     */
     std::expected<int, OrderError> openSO(const User& user, const OpeningData& data);
 
-    /** @brief CU-02 (Almoxarife): lista as OS em PendingBudget. Erro: AcessDenied. */
+    /**
+     * @brief Lista todas as ordens de serviço no estado `PendingBudget`.
+     *
+     * Operação restrita ao perfil de Almoxarife.
+     *
+     * @param user Usuário que solicita a consulta.
+     * @return Vetor com as ordens pendentes de orçamento ou `OrderError`
+     *         (`AcessDenied`).
+     */
     std::expected<std::vector<ServiceOrder>, OrderError> searchNewSO(const User& user);
 
-    /** @brief CU-02 (Almoxarife): anexa o orcamento e leva a OS a PendingAcceptance.
-     *  Erros: AcessDenied, InvalidData, ServiceOrderNotFound, InvalidTransition. */
+    /**
+     * @brief Anexa um orçamento a uma ordem de serviço e altera seu estado para `PendingAcceptance`.
+     *
+     * Operação restrita ao perfil de Almoxarife.
+     *
+     * @param user Usuário que envia o orçamento.
+     * @param soId Identificador único da ordem de serviço.
+     * @param budget Orçamento a ser vinculado à ordem.
+     * @return `void` em caso de sucesso ou `OrderError`
+     *         (`AcessDenied`, `InvalidData`, `ServiceOrderNotFound`, `InvalidTransition`).
+     */
     std::expected<void, OrderError> sendBudget(const User& user, int soId,
                                                const Budget& budget);
 
-    /** @brief CU-03 (Almoxarife): leva a OS a RejectedLackOfStock.
-     *  Erros: AcessDenied, ServiceOrderNotFound, InvalidTransition. */
+    /**
+     * @brief Recusa uma ordem de serviço por falta de estoque, alterando seu estado para `RejectedLackOfStock`.
+     *
+     * Operação restrita ao perfil de Almoxarife.
+     *
+     * @param user Usuário que registra a recusa.
+     * @param soId Identificador único da ordem de serviço.
+     * @return `void` em caso de sucesso ou `OrderError`
+     *         (`AcessDenied`, `ServiceOrderNotFound`, `InvalidTransition`).
+     */
     std::expected<void, OrderError> rejectDueLackOfStock(const User& user, int soId);
 
-    /** @brief CU-04: consulta individual (assinatura do UML); equivale a checkSOById. */
+    /**
+     * @brief Consulta uma ordem de serviço específica conforme a visibilidade do usuário.
+     *
+     * Equivalente a `checkSOById()`.
+     *
+     * @param user Usuário que realiza a consulta.
+     * @param soId Identificador único da ordem de serviço.
+     * @return A ordem de serviço encontrada ou `OrderError`
+     *         (`AcessDenied`, `ServiceOrderNotFound`).
+     */
     std::expected<ServiceOrder, OrderError> checkSO(const User& user, int soId);
 
-    /** @brief CU-04: lista de acompanhamento do perfil. Gerente: todas; Cliente: proprias
-     *  nao recusadas; Mecanico: as que abriu; Almoxarife: AcessDenied. */
+    /**
+     * @brief Lista as ordens de serviço visíveis para o perfil do usuário.
+     *
+     * Regras de visibilidade por perfil:
+     * - Gerente: todas as ordens cadastradas.
+     * - Cliente: próprias ordens que não foram recusadas.
+     * - Mecânico: ordens abertas por ele.
+     * - Almoxarife: acesso negado (`AcessDenied`).
+     *
+     * @param user Usuário que realiza a consulta.
+     * @return Vetor com as ordens acessíveis ao usuário ou `OrderError`
+     *         (`AcessDenied`).
+     */
     std::expected<std::vector<ServiceOrder>, OrderError> checkSO(const User& user);
 
-    /** @brief CU-04: consulta por identificador, conforme a visibilidade do perfil.
-     *  Erros: AcessDenied, ServiceOrderNotFound. */
+    /**
+     * @brief Consulta uma ordem de serviço pelo seu identificador, respeitando a visibilidade do perfil.
+     *
+     * @param user Usuário que realiza a consulta.
+     * @param soId Identificador único da ordem de serviço.
+     * @return A ordem de serviço encontrada ou `OrderError`
+     *         (`AcessDenied`, `ServiceOrderNotFound`).
+     */
     std::expected<ServiceOrder, OrderError> checkSOById(const User& user, int soId);
 
-    /** @brief CU-04 (Gerente): lista as OS em RejectedLackOfStock. Erro: AcessDenied. */
+    /**
+     * @brief Lista todas as ordens de serviço no estado `RejectedLackOfStock`.
+     *
+     * Operação restrita ao perfil de Gerente.
+     *
+     * @param user Usuário que solicita a listagem.
+     * @return Vetor com as ordens recusadas por falta de estoque ou `OrderError`
+     *         (`AcessDenied`).
+     */
     std::expected<std::vector<ServiceOrder>, OrderError> listRejectedDueLackOfStock(
         const User& user);
 
