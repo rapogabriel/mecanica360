@@ -1,3 +1,8 @@
+/**
+ * @file FakeRepository.h
+ * @brief Define a implementação em memória do repositório de ordens de serviço para testes.
+ */
+
 #pragma once
 
 #include <vector>
@@ -6,9 +11,12 @@
 
 namespace mecanica360 {
 
-// Repositorio em memoria usado nos testes. Os IDs sao sequenciais a
-// partir de 1 e as listas mantem a ordem de insercao (os testes CT-04.x
-// dependem dessa ordem).
+/**
+ * @brief Repositório em memória utilizado na execução de testes automatizados.
+ *
+ * Atribui identificadores sequenciais a partir de 1 e preserva a ordem de
+ * inserção nas listagens (comportamento esperado pelos casos de teste CT-04.x).
+ */
 class FakeRepository : public ServiceOrderRepository {
 public:
     int insert(ServiceOrder order) override;
@@ -20,8 +28,8 @@ public:
     std::vector<ServiceOrder> listAll() const override;
 
 private:
-    std::vector<ServiceOrder> orders_;
-    int nextId_ = 1;
+    std::vector<ServiceOrder> orders_;  ///< Armazenamento em memória das ordens de serviço.
+    int nextId_ = 1;                    ///< Próximo identificador sequencial a ser atribuído.
 };
 
 }  // namespace mecanica360
