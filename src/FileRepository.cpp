@@ -174,6 +174,12 @@ namespace mecanica360 {
         indexFile.read(reinterpret_cast<char*>(offsets.data()), customBatchSize * sizeof(IndexTuple));
         std::streamsize bytesRead = indexFile.gcount();
         size_t quantityRead = bytesRead / sizeof(IndexTuple);
+        
+        if (indexFile.eof() || indexFile.fail()) {
+            indexFile.clear();
+        }
+        
+        
         result.nextIdPos = indexFile.tellg();
         indexFile.close();
 

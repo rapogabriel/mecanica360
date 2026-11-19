@@ -90,7 +90,7 @@ public:
 private:
     std::string plate_;
     std::string model_;
-    int year_;
+    int year_ = 0;
 };
 
 /**
@@ -119,7 +119,7 @@ public:
 
 private:
     std::string description_;
-    int quantity_;
+    int quantity_ = 0;
 };
 
 /**
@@ -159,9 +159,9 @@ public:
     void deserialize(std::ifstream& in) override;
 
 private:
-    double partsValue_;
-    double laborValue_;
-    int deadline_;
+    double partsValue_ = 0.0;
+    double laborValue_ = 0.0;
+    int deadline_ = 0.0;
 };
 
 /**
@@ -205,10 +205,10 @@ public:
     void deserialize(std::ifstream& in) override;
 
 private:
-    OrderStatus previousState_;
-    OrderStatus newState_;
-    int responsibleId_;
-    std::time_t instant_;
+    OrderStatus previousState_ = OrderStatus::PendingBudget;
+    OrderStatus newState_= OrderStatus::PendingBudget;
+    int responsibleId_ = 0;
+    std::time_t instant_ = 0;
 };
 
 }  // namespace mecanica360

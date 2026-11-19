@@ -19,7 +19,7 @@ namespace mecanica360{
         int insert(ServiceOrder order) override;
         void update(const ServiceOrder& order) override;
 
-        std::vector<ServiceOrder> FileRepository::findBy(std::function<bool(const ServiceOrder&)> predicate,size_t batch = 20) const;
+        std::vector<ServiceOrder> findBy(std::function<bool(const ServiceOrder&)> predicate,size_t batch = 20) const;
         std::optional<ServiceOrder> findById(int id) const override;
         std::vector<ServiceOrder> listByState(OrderStatus status) const override;
         std::vector<ServiceOrder> listByCustomer(int clientId) const override;

@@ -140,7 +140,7 @@ private:
     OpeningData data;
     
     /// @brief Estado atual na máquina de estados.
-    OrderStatus state_;
+    OrderStatus state_ = OrderStatus::PendingBudget;;
     
     /// @brief Orçamento aprovado (pode estar vazio antes do aceite do cliente).
     std::optional<Budget> budget_;
