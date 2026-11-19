@@ -1,3 +1,9 @@
+/**
+ * @file ValueClasses.cpp
+ * @brief Implementação das classes de valor do domínio (`User`, `Vehicle`,
+ *        `NecessaryPart`, `Budget` e `StatusHistory`).
+ */
+
 #include "ValueClasses.h"
 
 #include <utility>
@@ -42,11 +48,11 @@ void Vehicle::deserialize(std::ifstream& in) {
 
 NecessaryPart::NecessaryPart(std::string description, int quantity)
     : description_(std::move(description)), quantity_(quantity) {}
+
 NecessaryPart::NecessaryPart() = default;
 
 const std::string& NecessaryPart::description() const { return description_; }
 int NecessaryPart::quantity() const { return quantity_; }
-
 
 void NecessaryPart::serialize(std::ofstream& out) const {
     using namespace serialization_utils;
@@ -65,14 +71,12 @@ void NecessaryPart::deserialize(std::ifstream& in) {
 Budget::Budget(double partsValue, double laborValue, int deadline)
     : partsValue_(partsValue), laborValue_(laborValue), deadline_(deadline) {}
 
-Budget::Budget()=default;
+Budget::Budget() = default;
 
 double Budget::partsValue() const { return partsValue_; }
 double Budget::laborValue() const { return laborValue_; }
 int Budget::deadline() const { return deadline_; }
 double Budget::total() const { return partsValue_ + laborValue_; }
-
-
 
 void Budget::serialize(std::ofstream& out) const {
     using namespace serialization_utils;
@@ -87,6 +91,7 @@ void Budget::deserialize(std::ifstream& in) {
     readPrimitive(in, laborValue_);
     readPrimitive(in, deadline_);
 }
+
 // ---- StatusHistory ---------------------------------------------------------
 
 StatusHistory::StatusHistory(OrderStatus previousState, OrderStatus newState,
@@ -95,7 +100,9 @@ StatusHistory::StatusHistory(OrderStatus previousState, OrderStatus newState,
       newState_(newState),
       responsibleId_(responsibleId),
       instant_(instant) {}
-StatusHistory::StatusHistory()=default;
+
+StatusHistory::StatusHistory() = default;
+
 OrderStatus StatusHistory::previousState() const { return previousState_; }
 OrderStatus StatusHistory::newState() const { return newState_; }
 int StatusHistory::responsibleId() const { return responsibleId_; }
@@ -116,6 +123,5 @@ void StatusHistory::deserialize(std::ifstream& in) {
     readPrimitive(in, responsibleId_);
     readPrimitive(in, instant_);
 }
-
 
 }  // namespace mecanica360
