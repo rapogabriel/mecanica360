@@ -10,6 +10,8 @@
 
 #include "Types.h"
 
+#include"Serializable.hpp"
+
 namespace mecanica360 {
 
 /**
@@ -52,7 +54,7 @@ private:
  * Classe de valor que encapsula os dados básicos de um automóvel 
  * para registro nas ordens de serviço.
  */
-class Vehicle {
+class Vehicle: public ISerializable {
 public:
     /**
      * @brief Construtor padrão.
@@ -82,16 +84,19 @@ public:
     /// @return Inteiro representando o ano.
     int year() const;
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
 private:
     std::string plate_;
     std::string model_;
-    int year_;
+    int year_ = 0;
 };
 
 /**
  * @brief Representa uma peça necessária para a execução de um serviço.
  */
-class NecessaryPart {
+class NecessaryPart: public ISerializable {
 public:
     /**
      * @brief Constrói o registro de uma peça necessária.
@@ -100,7 +105,7 @@ public:
      * @param[in] quantity Quantidade de unidades necessárias.
      */
     NecessaryPart(std::string description, int quantity);
-
+    NecessaryPart();
     /// @brief Obtém a descrição da peça.
     /// @return String com o nome/detalhe da peça.
     const std::string& description() const;
@@ -109,15 +114,18 @@ public:
     /// @return Inteiro representando a quantidade.
     int quantity() const;
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
 private:
     std::string description_;
-    int quantity_;
+    int quantity_ = 0;
 };
 
 /**
  * @brief Representa o orçamento financeiro e de tempo de uma Ordem de Serviço.
  */
-class Budget {
+class Budget: public ISerializable {
 public:
     /**
      * @brief Constrói um novo orçamento.
@@ -128,6 +136,7 @@ public:
      */
     Budget(double partsValue, double laborValue, int deadline);
 
+    Budget();
     /// @brief Obtém o valor isolado das peças.
     /// @return Valor monetário bruto em formato decimal.
     double partsValue() const;
@@ -146,10 +155,13 @@ public:
      */
     double total() const;
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
 private:
-    double partsValue_;
-    double laborValue_;
-    int deadline_;
+    double partsValue_ = 0.0;
+    double laborValue_ = 0.0;
+    int deadline_ = 0.0;
 };
 
 /**
@@ -158,7 +170,7 @@ private:
  * Utilizado para rastrear quando uma ordem avançou ou retrocedeu no fluxo, 
  * quem foi o responsável e exatamente quando isso ocorreu.
  */
-class StatusHistory {
+class StatusHistory: public ISerializable {
 public:
     /**
      * @brief Constrói um novo registro de transição de estado.
@@ -170,6 +182,8 @@ public:
      */
     StatusHistory(OrderStatus previousState, OrderStatus newState,
                   int responsibleId, std::time_t instant);
+
+    StatusHistory();
 
     /// @brief Obtém o estado anterior à transição.
     /// @return Valor do enum OrderStatus.
@@ -187,11 +201,14 @@ public:
     /// @return Objeto std::time_t (representação de tempo Unix).
     std::time_t instant() const;
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
 private:
-    OrderStatus previousState_;
-    OrderStatus newState_;
-    int responsibleId_;
-    std::time_t instant_;
+    OrderStatus previousState_ = OrderStatus::PendingBudget;
+    OrderStatus newState_= OrderStatus::PendingBudget;
+    int responsibleId_ = 0;
+    std::time_t instant_ = 0;
 };
 
 }  // namespace mecanica360

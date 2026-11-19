@@ -22,6 +22,7 @@ ServiceOrder::ServiceOrder(const OpeningData& data, int mechanicId) {
     state_ = OrderStatus::PendingBudget;
     budget_ = std::nullopt;
 }
+ServiceOrder::ServiceOrder()=default;
 
 int ServiceOrder::id() const { return id_; }
 int ServiceOrder::clientId() const { return data.clientId; }
@@ -73,6 +74,89 @@ void ServiceOrder::attachBudget(const Budget& budget) {
         throw std::logic_error("ServiceOrder::attachBudget: OS fora de PendingBudget");
     }
     budget_ = budget;
+}
+
+void ServiceOrder::serialize(std::ofstream& out) const {
+    using namespace serialization_utils;
+
+    writePrimitive(out, id_);
+    writePrimitive(out, data.clientId);
+    writePrimitive(out, mechanicId_);
+
+    data.vehicle.serialize(out);
+
+    writeString(out, data.diagnosis);
+
+    // Serializando vetor de peças
+    size_t partsCount = data.parts.size();
+    writePrimitive(out, partsCount);
+    for (const auto& part : data.parts) {
+        part.serialize(out);
+    }
+
+    writePrimitive(out, data.labor);
+    writePrimitive(out, data.deadline);
+    writePrimitive(out, state_);
+
+    // Serializando std::optional<Budget>
+    bool hasBudget = budget_.has_value();
+    writePrimitive(out, hasBudget);
+    if (hasBudget) {
+        budget_->serialize(out);
+    }
+
+    // Serializando vetor de histórico
+    size_t historyCount = history_.size();
+    writePrimitive(out, historyCount);
+    for (const auto& hist : history_) {
+        hist.serialize(out);
+    }
+}
+
+void ServiceOrder::deserialize(std::ifstream& in) {
+    using namespace serialization_utils;
+
+    readPrimitive(in, id_);
+    readPrimitive(in, data.clientId);
+    readPrimitive(in, mechanicId_);
+
+    data.vehicle.deserialize(in);
+
+    readString(in, data.diagnosis);
+
+    // Desserializando vetor de peças
+    size_t partsCount = 0;
+    readPrimitive(in, partsCount);
+    
+    data.parts.resize(partsCount);
+    for (size_t i = 0; i < partsCount; ++i) {
+        data.parts[i].deserialize(in);
+    }
+
+    readPrimitive(in, data.labor);
+    readPrimitive(in, data.deadline);
+    readPrimitive(in, state_);
+
+    // Desserializando std::optional<Budget>
+    bool hasBudget = false;
+    readPrimitive(in, hasBudget);
+    if (hasBudget) {
+        Budget b;
+        b.deserialize(in);
+        budget_ = b;
+    } else {
+        budget_ = std::nullopt;
+    }
+
+    // Desserializando vetor de histórico
+    size_t historyCount = 0;
+    readPrimitive(in, historyCount);
+    history_.clear();
+    for (size_t i = 0; i < historyCount; ++i) {
+        StatusHistory hist;
+        hist.deserialize(in);
+        history_.push_back(hist);
+    }
 }
 
 }  // namespace mecanica360

@@ -13,6 +13,8 @@
 #include "Types.h"
 #include "ValueClasses.h"
 
+#include "Serializable.hpp"
+
 namespace mecanica360 {
 
 /**
@@ -26,7 +28,7 @@ namespace mecanica360 {
  * identificador único chamando o método assignId() durante a inserção no banco de 
  * dados. Dessa forma, a garantia de unicidade (CT-01.2) fica a cargo da persistência.
  */
-class ServiceOrder {
+class ServiceOrder: public ISerializable {
 public:
     /**
      * @brief Constrói uma nova Ordem de Serviço.
@@ -38,7 +40,7 @@ public:
      * @param[in] mechanicId Identificador do mecânico responsável pela execução.
      */
     ServiceOrder(const OpeningData& data, int mechanicId);
-
+    ServiceOrder();
     /// @brief Obtém o identificador único da ordem.
     /// @return ID da ordem (retorna 0 se a ordem ainda não foi persistida).
     int id() const;
@@ -122,6 +124,11 @@ public:
      */
     void attachBudget(const Budget& budget);
 
+    void serialize(std::ofstream& out) const override;
+    void deserialize(std::ifstream& in) override;
+
+
+
 private:
     /// @brief Identificador único da ordem de serviço.
     int id_ = 0;
@@ -133,13 +140,16 @@ private:
     OpeningData data;
     
     /// @brief Estado atual na máquina de estados.
-    OrderStatus state_;
+    OrderStatus state_ = OrderStatus::PendingBudget;;
     
     /// @brief Orçamento aprovado (pode estar vazio antes do aceite do cliente).
     std::optional<Budget> budget_;
     
     /// @brief Registro cronológico das mudanças de estado.
     std::vector<StatusHistory> history_;
+
+
+
 };
 
 }  // namespace mecanica360
