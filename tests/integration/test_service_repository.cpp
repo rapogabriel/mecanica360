@@ -1,9 +1,10 @@
 // Integracao ServiceOrderService <-> ServiceOrderRepository (abstracao) e fluxo completo.
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <functional>
 
 #include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "../TestFramework.h"
 
 using namespace fx;
 
@@ -27,7 +28,8 @@ public:
 
 }  // namespace
 
-TEST("Integracao: servico funciona com qualquer implementacao de ServiceOrderRepository") {
+TEST_CASE("Integracao: servico funciona com qualquer implementacao de ServiceOrderRepository",
+          "[integration]") {
     SpyRepository repo;
     ServiceOrderService service(repo);
     auto id = service.openSO(mechanic(), validOpening());
@@ -38,7 +40,7 @@ TEST("Integracao: servico funciona com qualquer implementacao de ServiceOrderRep
     CHECK(repo.inner.findById(*id)->state() == OrderStatus::PendingAcceptance);
 }
 
-TEST("Integracao: erros de negocio nao chamam insert nem update") {
+TEST_CASE("Integracao: erros de negocio nao chamam insert nem update", "[integration]") {
     SpyRepository repo;
     const int pending = seed(repo, 10, 7);
     const int sent = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
@@ -61,7 +63,7 @@ TEST("Integracao: erros de negocio nao chamam insert nem update") {
     CHECK(repo.updates == upd0);
 }
 
-TEST("Integracao: consultas nao escrevem no repositorio") {
+TEST_CASE("Integracao: consultas nao escrevem no repositorio", "[integration]") {
     SpyRepository repo;
     const int id = seed(repo, 10, 7);
     const int ins0 = repo.inserts, upd0 = repo.updates;
@@ -76,7 +78,8 @@ TEST("Integracao: consultas nao escrevem no repositorio") {
     CHECK(repo.updates == upd0);
 }
 
-TEST("Integracao: fluxo completo - abrir, listar, enviar orcamento e acompanhar") {
+TEST_CASE("Integracao: fluxo completo - abrir, listar, enviar orcamento e acompanhar",
+          "[integration]") {
     FakeRepository repo;
     ServiceOrderService service(repo);
 
@@ -94,14 +97,15 @@ TEST("Integracao: fluxo completo - abrir, listar, enviar orcamento e acompanhar"
     REQUIRE(cliente.has_value());
     CHECK(cliente->state() == OrderStatus::PendingAcceptance);
     REQUIRE(cliente->budget().has_value());
-    CHECK_NEAR(cliente->budget()->total(), 1100.0);
+    CHECK(cliente->budget()->total() == Catch::Approx(1100.0));
     CHECK(cliente->history().size() == 1);
 
     // Almoxarife deixa de enxergar a OS apos o envio
     CHECK(service.checkSOById(stockroom(), *id).error() == OrderError::AcessDenied);
 }
 
-TEST("Integracao: fluxo de recusa aparece para gerente e mecanico, nao para o cliente") {
+TEST_CASE("Integracao: fluxo de recusa aparece para gerente e mecanico, nao para o cliente",
+          "[integration]") {
     FakeRepository repo;
     ServiceOrderService service(repo);
     auto id = service.openSO(mechanic(7), validOpening(10));
@@ -119,7 +123,7 @@ TEST("Integracao: fluxo de recusa aparece para gerente e mecanico, nao para o cl
     CHECK(so->history().size() == 1);
 }
 
-TEST("Integracao: identificadores gerados sao unicos em varias aberturas") {
+TEST_CASE("Integracao: identificadores gerados sao unicos em varias aberturas", "[integration]") {
     FakeRepository repo;
     ServiceOrderService service(repo);
     std::vector<int> got;
@@ -132,7 +136,7 @@ TEST("Integracao: identificadores gerados sao unicos em varias aberturas") {
         for (std::size_t j = i + 1; j < got.size(); ++j) CHECK(got[i] != got[j]);
 }
 
-TEST("Integracao: OS aberta guarda o mecanico do usuario autenticado") {
+TEST_CASE("Integracao: OS aberta guarda o mecanico do usuario autenticado", "[integration]") {
     FakeRepository repo;
     ServiceOrderService service(repo);
     auto a = service.openSO(mechanic(7), validOpening());

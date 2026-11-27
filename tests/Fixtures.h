@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -54,17 +55,25 @@ struct Snapshot {
     bool operator==(const Snapshot&) const = default;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const Snapshot& s) {
+    return os << "Snapshot{state=" << static_cast<int>(s.state)
+              << ", hasBudget=" << (s.hasBudget ? "true" : "false")
+              << ", total=" << s.total
+              << ", historySize=" << s.historySize << "}";
+}
+
 inline Snapshot snap(const ServiceOrder& so) {
     auto b = so.budget();
     return {so.state(), b.has_value(), b ? b->total() : 0.0, so.history().size()};
 }
 
 inline Snapshot snapOf(const ServiceOrderRepository& repo, int id) {
-    return snap(*repo.findById(id));
+    return snap(repo.findById(id).value());
 }
 
 inline std::vector<int> ids(const std::vector<ServiceOrder>& v) {
     std::vector<int> out;
+    out.reserve(v.size());
     for (const auto& so : v) out.push_back(so.id());
     return out;
 }

@@ -21,15 +21,25 @@ variables:
     - cp -r doc/html/. public/
 
 .installing:
+  image: gcc:16.2-trixie
+  variables:
+    QT_QPA_PLATFORM: offscreen
   before_script:
     - apt-get update -qq
-    - apt-get install -y -qq build-essential curl
+    - apt-get install -y -qq --no-install-recommends
+        cmake
+        ninja-build
+        pkg-config
+        qt6-base-dev
+        qt6-base-dev-tools
+        libgl1-mesa-dev
+        catch2
+        curl
     - curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
 
 run-tests:
   stage: testing
   extends: .installing
-  image: ubuntu:24.04
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:

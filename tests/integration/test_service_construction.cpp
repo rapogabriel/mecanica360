@@ -1,11 +1,12 @@
 // Tarefa #13: ServiceOrderService (construtor e injecao do repositorio).
+#include <catch2/catch_test_macros.hpp>
+
 #include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "../TestFramework.h"
 
 using namespace fx;
 
-TEST("Service: usa o repositorio injetado (le dados ja existentes)") {
+TEST_CASE("Service: usa o repositorio injetado (le dados ja existentes)", "[service]") {
     FakeRepository repo;
     const int id = seed(repo, 10, 7);
     ServiceOrderService service(repo);
@@ -14,7 +15,7 @@ TEST("Service: usa o repositorio injetado (le dados ja existentes)") {
     CHECK(r->id() == id);
 }
 
-TEST("Service: grava no repositorio injetado") {
+TEST_CASE("Service: grava no repositorio injetado", "[service]") {
     FakeRepository repo;
     ServiceOrderService service(repo);
     auto id = service.openSO(mechanic(), validOpening());
@@ -23,7 +24,7 @@ TEST("Service: grava no repositorio injetado") {
     CHECK(repo.listAll().size() == 1);
 }
 
-TEST("Service: dois servicos sobre o mesmo repositorio compartilham os dados") {
+TEST_CASE("Service: dois servicos sobre o mesmo repositorio compartilham os dados", "[service]") {
     FakeRepository repo;
     ServiceOrderService a(repo);
     ServiceOrderService b(repo);
@@ -32,7 +33,7 @@ TEST("Service: dois servicos sobre o mesmo repositorio compartilham os dados") {
     CHECK(b.checkSOById(manager(), *id).has_value());
 }
 
-TEST("Service: servicos com repositorios distintos sao isolados") {
+TEST_CASE("Service: servicos com repositorios distintos sao isolados", "[service]") {
     FakeRepository repo1;
     FakeRepository repo2;
     ServiceOrderService a(repo1);

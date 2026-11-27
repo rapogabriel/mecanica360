@@ -20,6 +20,28 @@ MOC_BIN := "/usr/lib/qt6/libexec/moc"
 CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
+image_name := "qt-catch2-env"
+build_vol  := "qt-catch2-build-cache"
+
+# Constrói (ou reconstrói) a imagem quando o Dockerfile mudar
+docker-build:
+    docker build -t {{image_name}} docker/
+
+# Garante que a imagem existe e roda os testes de forma isolada
+test-docker:
+    @docker image inspect {{image_name}} >/dev/null 2>&1 || just docker-build
+    docker run --rm \
+        -v "{{justfile_directory()}}/include:/workspace/include:ro" \
+        -v "{{justfile_directory()}}/src:/workspace/src:ro" \
+        -v "{{justfile_directory()}}/tests:/workspace/tests:ro" \
+        -v "{{justfile_directory()}}/docker/CMakeLists.txt:/workspace/CMakeLists.txt:ro" \
+        -v {{build_vol}}:/workspace/build \
+        {{image_name}} \
+        bash -c "cmake -S /workspace -B /workspace/build -G Ninja && cmake --build /workspace/build && ctest --test-dir /workspace/build --output-on-failure"
+
+# Limpa o cache de build do container se precisar de um build 100% do zero
+test-docker-clean:
+    docker volume rm -f {{build_vol}}
 
 teste branch='all':
   mkdir -p bin/

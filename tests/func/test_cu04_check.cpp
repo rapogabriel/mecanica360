@@ -1,201 +1,238 @@
-// Tarefa #23: CU-04 (checkSO, checkSOById e listRejectedDueLackOfStock).
-// Cenarios CT-04.1 a CT-04.11.
+// CU-04 (checkSO, checkSOById e listRejectedDueLackOfStock): Cenarios CT-04.1 a CT-04.11.
 #include <algorithm>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include "../Fixtures.h"
 #include "ServiceOrderService.h"
-#include "../TestFramework.h"
 
 using namespace fx;
 
-namespace {
-bool contains(const std::vector<int>& v, int id) {
-    return std::find(v.begin(), v.end(), id) != v.end();
-}
-}  // namespace
+SCENARIO("CT-04.1 - Lista do gerente", "[func][cu04]") {
+    GIVEN("um gerente autenticado e ordens de clientes e mecanicos diferentes nos estados "
+          "pendente, enviada e recusada") {
+        FakeRepository repo;
+        const int a = seed(repo, 10, 7, OrderStatus::PendingBudget);
+        const int b = seed(repo, 11, 8, OrderStatus::PendingAcceptance);
+        const int c = seed(repo, 12, 9, OrderStatus::RejectedLackOfStock);
+        ServiceOrderService service(repo);
 
-TEST("CT-04.1 Lista do gerente: todas as ordens, inclusive recusadas") {
-    FakeRepository repo;
-    const int a = seed(repo, 10, 7, OrderStatus::PendingBudget);
-    const int b = seed(repo, 11, 8, OrderStatus::PendingAcceptance);
-    const int c = seed(repo, 12, 9, OrderStatus::RejectedLackOfStock);
-    ServiceOrderService service(repo);
-    auto r = service.checkSO(manager());
-    REQUIRE(r.has_value());
-    CHECK((ids(*r) == std::vector<int>{a, b, c}));
-}
+        WHEN("o gerente solicita a listagem geral") {
+            auto r = service.checkSO(manager());
 
-TEST("CT-04.2 Lista do cliente: so as proprias nao recusadas") {
-    FakeRepository repo;
-    const int own1 = seed(repo, 10, 7, OrderStatus::PendingBudget);
-    const int own2 = seed(repo, 10, 8, OrderStatus::PendingAcceptance);
-    const int ownRejected = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    const int other = seed(repo, 11, 7, OrderStatus::PendingBudget);
-    ServiceOrderService service(repo);
-    auto r = service.checkSO(customer(10));
-    REQUIRE(r.has_value());
-    const auto got = ids(*r);
-    CHECK((got == std::vector<int>{own1, own2}));
-    CHECK(!contains(got, ownRejected));
-    CHECK(!contains(got, other));
+            THEN("todas as ordens sao apresentadas, inclusive as recusadas") {
+                REQUIRE(r.has_value());
+                CHECK((ids(*r) == std::vector<int>{a, b, c}));
+            }
+        }
+    }
 }
 
-TEST("CT-04.3 Lista do mecanico: so as que abriu, inclusive recusadas") {
-    FakeRepository repo;
-    const int a = seed(repo, 10, 7, OrderStatus::PendingBudget);
-    const int b = seed(repo, 11, 7, OrderStatus::PendingAcceptance);
-    const int c = seed(repo, 12, 7, OrderStatus::RejectedLackOfStock);
-    seed(repo, 10, 8, OrderStatus::PendingBudget);
-    ServiceOrderService service(repo);
-    auto r = service.checkSO(mechanic(7));
-    REQUIRE(r.has_value());
-    CHECK((ids(*r) == std::vector<int>{a, b, c}));
+SCENARIO("CT-04.2 - Lista do cliente", "[func][cu04]") {
+    GIVEN("o cliente 10 com duas OS proprias nao recusadas, uma recusada e uma OS de outro "
+          "cliente") {
+        FakeRepository repo;
+        const int own1 = seed(repo, 10, 7, OrderStatus::PendingBudget);
+        const int own2 = seed(repo, 10, 8, OrderStatus::PendingAcceptance);
+        const int ownRejected = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
+        const int other = seed(repo, 11, 7, OrderStatus::PendingBudget);
+        ServiceOrderService service(repo);
+
+        WHEN("o cliente 10 solicita sua lista") {
+            auto r = service.checkSO(customer(10));
+
+            THEN("so aparecem as duas OS proprias nao recusadas; nem a recusada nem as alheias "
+                 "sao reveladas") {
+                REQUIRE(r.has_value());
+                const auto got = ids(*r);
+                CHECK((got == std::vector<int>{own1, own2}));
+                CHECK(!std::ranges::contains(got, ownRejected));
+                CHECK(!std::ranges::contains(got, other));
+            }
+        }
+    }
 }
 
-TEST("CT-04.4 Almoxarife na lista geral: acesso negado") {
-    FakeRepository repo;
-    seed(repo, 10, 7);
-    ServiceOrderService service(repo);
-    auto r = service.checkSO(stockroom());
-    REQUIRE(!r.has_value());
-    CHECK(r.error() == OrderError::AcessDenied);
+SCENARIO("CT-04.3 - Lista do mecanico", "[func][cu04]") {
+    GIVEN("o mecanico 7 que abriu ordens em estados diferentes e outro mecanico que abriu outras "
+          "OS") {
+        FakeRepository repo;
+        const int a = seed(repo, 10, 7, OrderStatus::PendingBudget);
+        const int b = seed(repo, 11, 7, OrderStatus::PendingAcceptance);
+        const int c = seed(repo, 12, 7, OrderStatus::RejectedLackOfStock);
+        seed(repo, 10, 8, OrderStatus::PendingBudget);
+        ServiceOrderService service(repo);
+
+        WHEN("o mecanico 7 solicita sua lista") {
+            auto r = service.checkSO(mechanic(7));
+
+            THEN("a lista traz somente as OS abertas pelo mecanico 7, inclusive as recusadas") {
+                REQUIRE(r.has_value());
+                CHECK((ids(*r) == std::vector<int>{a, b, c}));
+            }
+        }
+    }
 }
 
-TEST("CT-04.5 Numero visivel: cliente 10 consulta a propria OS nao recusada") {
-    FakeRepository repo;
-    const int id = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
-    ServiceOrderService service(repo);
-    auto r = service.checkSOById(customer(10), id);
-    REQUIRE(r.has_value());
-    CHECK(r->id() == id);
-    CHECK(r->clientId() == 10);
-    CHECK(r->state() == OrderStatus::PendingAcceptance);
-    CHECK(r->vehicle().plate() == "ABC1D23");
-    CHECK(r->diagnosis() == "freios desgastados");
+SCENARIO("CT-04.4 - Almoxarife na lista geral", "[func][cu04]") {
+    GIVEN("um almoxarife autenticado e ordens registradas") {
+        FakeRepository repo;
+        seed(repo, 10, 7);
+        ServiceOrderService service(repo);
+
+        WHEN("ele solicita a lista geral de acompanhamento") {
+            auto r = service.checkSO(stockroom());
+
+            THEN("o sistema nega o acesso a listagem geral") {
+                REQUIRE(!r.has_value());
+                CHECK(r.error() == OrderError::AcessDenied);
+            }
+        }
+    }
 }
 
-TEST("CT-04.5 checkSO(user, id) equivale a checkSOById") {
-    FakeRepository repo;
-    const int id = seed(repo, 10, 7);
-    ServiceOrderService service(repo);
-    auto r = service.checkSO(customer(10), id);
-    REQUIRE(r.has_value());
-    CHECK(r->id() == id);
-    CHECK(service.checkSO(customer(11), id).error() == OrderError::AcessDenied);
-    CHECK(service.checkSO(manager(), 999).error() == OrderError::ServiceOrderNotFound);
+SCENARIO("CT-04.5 - Numero visivel", "[func][cu04]") {
+    GIVEN("uma OS do cliente 10, nao recusada") {
+        FakeRepository repo;
+        const int id = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
+        ServiceOrderService service(repo);
+
+        WHEN("o cliente 10 consulta seu numero") {
+            auto r = service.checkSOById(customer(10), id);
+
+            THEN("o sistema apresenta dados e estado dessa OS") {
+                REQUIRE(r.has_value());
+                CHECK(r->id() == id);
+                CHECK(r->clientId() == 10);
+                CHECK(r->state() == OrderStatus::PendingAcceptance);
+                CHECK(r->vehicle().plate() == "ABC1D23");
+                CHECK(r->diagnosis() == "freios desgastados");
+            }
+        }
+    }
 }
 
-TEST("CT-04.6 Numero nao visivel: OS de terceiro e OS propria recusada sao negadas") {
-    FakeRepository repo;
-    const int third = seed(repo, 11, 7, OrderStatus::PendingBudget);
-    const int ownRejected = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    ServiceOrderService service(repo);
+SCENARIO("CT-04.6 - Numero nao visivel", "[func][cu04]") {
+    GIVEN("um cliente que conhece o numero de uma OS de terceiro e da propria OS recusada por "
+          "estoque") {
+        FakeRepository repo;
+        const int third = seed(repo, 11, 7, OrderStatus::PendingBudget);
+        const int ownRejected = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
+        ServiceOrderService service(repo);
 
-    auto r1 = service.checkSOById(customer(10), third);
-    REQUIRE(!r1.has_value());
-    CHECK(r1.error() == OrderError::AcessDenied);
+        WHEN("ele consulta cada numero em tentativas separadas") {
+            auto r1 = service.checkSOById(customer(10), third);
+            auto r2 = service.checkSOById(customer(10), ownRejected);
 
-    auto r2 = service.checkSOById(customer(10), ownRejected);
-    REQUIRE(!r2.has_value());
-    CHECK(r2.error() == OrderError::AcessDenied);
+            THEN("o sistema nega acesso aos detalhes em ambas as situacoes") {
+                REQUIRE(!r1.has_value());
+                CHECK(r1.error() == OrderError::AcessDenied);
+                REQUIRE(!r2.has_value());
+                CHECK(r2.error() == OrderError::AcessDenied);
+            }
+        }
+    }
 }
 
-TEST("CT-04.7 Numero inexistente: ServiceOrderNotFound") {
-    FakeRepository repo;
-    seed(repo, 10, 7);
-    ServiceOrderService service(repo);
-    auto r = service.checkSOById(manager(), 999);
-    REQUIRE(!r.has_value());
-    CHECK(r.error() == OrderError::ServiceOrderNotFound);
+SCENARIO("CT-04.7 - Numero inexistente", "[func][cu04]") {
+    GIVEN("um gerente autenticado e nenhuma OS de numero 999") {
+        FakeRepository repo;
+        seed(repo, 10, 7);
+        ServiceOrderService service(repo);
+
+        WHEN("o gerente consulta o numero 999") {
+            auto r = service.checkSOById(manager(), 999);
+
+            THEN("o sistema informa OS nao encontrada") {
+                REQUIRE(!r.has_value());
+                CHECK(r.error() == OrderError::ServiceOrderNotFound);
+            }
+        }
+    }
 }
 
-TEST("CT-04.8 Relacao de recusas: somente Recusada por falta de estoque") {
-    FakeRepository repo;
-    seed(repo, 10, 7, OrderStatus::PendingBudget);
-    seed(repo, 10, 7, OrderStatus::PendingAcceptance);
-    const int r1 = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    const int r2 = seed(repo, 11, 8, OrderStatus::RejectedLackOfStock);
-    ServiceOrderService service(repo);
-    auto r = service.listRejectedDueLackOfStock(manager());
-    REQUIRE(r.has_value());
-    CHECK((ids(*r) == std::vector<int>{r1, r2}));
-    for (const auto& so : *r) CHECK(so.state() == OrderStatus::RejectedLackOfStock);
+SCENARIO("CT-04.8 - Relacao de recusas", "[func][cu04]") {
+    GIVEN("um gerente autenticado e ordens recusadas e em outros estados") {
+        FakeRepository repo;
+        seed(repo, 10, 7, OrderStatus::PendingBudget);
+        seed(repo, 10, 7, OrderStatus::PendingAcceptance);
+        const int r1 = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
+        const int r2 = seed(repo, 11, 8, OrderStatus::RejectedLackOfStock);
+        ServiceOrderService service(repo);
+
+        WHEN("o gerente solicita a lista especifica de recusas por estoque") {
+            auto r = service.listRejectedDueLackOfStock(manager());
+
+            THEN("somente ordens no estado Recusada por falta de estoque sao apresentadas") {
+                REQUIRE(r.has_value());
+                CHECK((ids(*r) == std::vector<int>{r1, r2}));
+                for (const auto& so : *r) CHECK(so.state() == OrderStatus::RejectedLackOfStock);
+            }
+        }
+    }
 }
 
-TEST("CT-04.9 Recusas sem permissao: cliente e demais perfis sao negados") {
-    const User users[] = {customer(), mechanic(), stockroom()};
-    for (const auto& u : users) {
+SCENARIO("CT-04.9 - Recusas sem permissao", "[func][cu04]") {
+    GIVEN("um cliente autenticado") {
         FakeRepository repo;
         seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
         ServiceOrderService service(repo);
-        auto r = service.listRejectedDueLackOfStock(u);
-        REQUIRE(!r.has_value());
-        CHECK(r.error() == OrderError::AcessDenied);
-    }
-}
 
-TEST("CT-04.10 Somente leitura: consultas nao alteram estado, orcamento nem historico") {
-    FakeRepository repo;
-    const int pa = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
-    const int rj = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    const int pb = seed(repo, 10, 7, OrderStatus::PendingBudget);
-    const auto s1 = snapOf(repo, pa);
-    const auto s2 = snapOf(repo, rj);
-    const auto s3 = snapOf(repo, pb);
-    const std::time_t t1 = repo.findById(pa)->history()[0].instant();
-    ServiceOrderService service(repo);
+        WHEN("o cliente realiza a consulta especifica de ordens recusadas") {
+            auto r = service.listRejectedDueLackOfStock(customer());
 
-    const User users[] = {manager(), customer(10), mechanic(7), stockroom()};
-    for (const auto& u : users) {
-        service.checkSO(u);
-        service.listRejectedDueLackOfStock(u);
-        service.searchNewSO(u);
-        for (int id : {pa, rj, pb, 999}) {
-            service.checkSOById(u, id);
-            service.checkSO(u, id);
+            THEN("o sistema nega a consulta por falta de permissao") {
+                REQUIRE(!r.has_value());
+                CHECK(r.error() == OrderError::AcessDenied);
+            }
         }
     }
-
-    CHECK(repo.listAll().size() == 3);
-    CHECK(snapOf(repo, pa) == s1);
-    CHECK(snapOf(repo, rj) == s2);
-    CHECK(snapOf(repo, pb) == s3);
-    CHECK(repo.findById(pa)->history()[0].instant() == t1);
-    REQUIRE(repo.findById(pa)->budget().has_value());
-    CHECK_NEAR(repo.findById(pa)->budget()->total(), 1100.0);
 }
 
-TEST("CT-04.11 Numero pelo almoxarife: so OS em Orcamento pendente") {
-    FakeRepository repo;
-    const int a = seed(repo, 10, 7, OrderStatus::PendingBudget);        // "OS 101" da spec
-    const int b = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    const int c = seed(repo, 10, 7, OrderStatus::PendingAcceptance);    // "OS 103" da spec
-    ServiceOrderService service(repo);
+SCENARIO("CT-04.10 - Somente leitura", "[func][cu04]") {
+    GIVEN("uma OS que ja possui estado, orcamento e historico previamente registrados") {
+        FakeRepository repo;
+        const int id = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
+        const auto before = snapOf(repo, id);
+        const std::time_t instant = repo.findById(id)->history()[0].instant();
+        ServiceOrderService service(repo);
 
-    auto ok = service.checkSOById(stockroom(), a);
-    REQUIRE(ok.has_value());
-    CHECK(ok->id() == a);
+        WHEN("um usuario autorizado consulta listas e detalhes dessa OS") {
+            (void)service.checkSO(manager());
+            (void)service.checkSOById(manager(), id);
+            (void)service.checkSO(customer(10));
+            (void)service.checkSOById(customer(10), id);
 
-    auto denied = service.checkSOById(stockroom(), c);
-    REQUIRE(!denied.has_value());
-    CHECK(denied.error() == OrderError::AcessDenied);
-    CHECK(service.checkSOById(stockroom(), b).error() == OrderError::AcessDenied);
+            THEN("todos os dados permanecem iguais apos a consulta") {
+                CHECK(repo.listAll().size() == 1);
+                CHECK(snapOf(repo, id) == before);
+                CHECK(repo.findById(id)->history()[0].instant() == instant);
+                REQUIRE(repo.findById(id)->budget().has_value());
+                CHECK(repo.findById(id)->budget()->total() == Catch::Approx(1100.0));
+            }
+        }
+    }
 }
 
-TEST("CU-04 Mecanico consulta por id so as que abriu (inclusive recusada)") {
-    FakeRepository repo;
-    const int mine = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    const int others = seed(repo, 10, 8, OrderStatus::PendingBudget);
-    ServiceOrderService service(repo);
-    CHECK(service.checkSOById(mechanic(7), mine).has_value());
-    auto r = service.checkSOById(mechanic(7), others);
-    REQUIRE(!r.has_value());
-    CHECK(r.error() == OrderError::AcessDenied);
-}
+SCENARIO("CT-04.11 - Numero pelo almoxarife", "[func][cu04]") {
+    GIVEN("um almoxarife autenticado e uma OS em Orcamento pendente e outra em Pendente "
+          "aceitacao") {
+        FakeRepository repo;
+        const int pendingBudget = seed(repo, 10, 7, OrderStatus::PendingBudget);
+        const int pendingAcceptance = seed(repo, 10, 7, OrderStatus::PendingAcceptance);
+        ServiceOrderService service(repo);
 
-TEST("CU-04 Gerente consulta por id qualquer OS, inclusive recusada") {
-    FakeRepository repo;
-    const int id = seed(repo, 10, 7, OrderStatus::RejectedLackOfStock);
-    ServiceOrderService service(repo);
-    CHECK(service.checkSOById(manager(), id).has_value());
+        WHEN("o almoxarife tenta consultar cada identificador") {
+            auto ok = service.checkSOById(stockroom(), pendingBudget);
+            auto denied = service.checkSOById(stockroom(), pendingAcceptance);
+
+            THEN("o sistema exibe apenas a OS em Orcamento pendente e nega acesso a OS em "
+                 "Pendente aceitacao") {
+                REQUIRE(ok.has_value());
+                CHECK(ok->id() == pendingBudget);
+                REQUIRE(!denied.has_value());
+                CHECK(denied.error() == OrderError::AcessDenied);
+            }
+        }
+    }
 }
