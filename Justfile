@@ -73,7 +73,7 @@ teste branch='all':
             ;;
     esac
 
-    cmake -S . -B {{build_dir}} -G Ninja
+    cmake -S docker/ -B {{build_dir}} -G Ninja
     cmake --build {{build_dir}} --target "${TARGETS[@]}"
     ctest --test-dir {{build_dir}} -L "$LABELS" --output-on-failure
 
