@@ -1,5 +1,5 @@
 /**
- * @file Serializable.h
+ * @file Serializable.hpp
  * @brief Define a interface de serialização e funções utilitárias de leitura e escrita.
  */
 

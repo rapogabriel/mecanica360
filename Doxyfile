@@ -15,6 +15,8 @@ OUTPUT_LANGUAGE        = Brazilian
 # Extração
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+MACRO_EXPANSION        = YES
 EXTRACT_PRIVATE        = YES
 
 #---------------------------------------------------------------------------
@@ -22,7 +24,7 @@ EXTRACT_PRIVATE        = YES
 #---------------------------------------------------------------------------
 # Inclua "src" para os .cpp (necessário para os grafos de chamada).
 # Se a pasta não existir, remova "src" daqui.
-INPUT                  = include src README.md
+INPUT                  = include src README.md tests
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.md
 RECURSIVE              = YES

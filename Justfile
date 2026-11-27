@@ -20,21 +20,62 @@ MOC_BIN := "/usr/lib/qt6/libexec/moc"
 CXX := "g++"
 COMPILE_FLAGS := "-I" + INCLUDE_DIR +" -std=c++23"
 DLL_COMPILE_FLAGS := "-shared -fPIC"
+image_name := "qt-catch2-env"
+build_vol  := "qt-catch2-build-cache"
+
+# Constrói (ou reconstrói) a imagem quando o Dockerfile mudar
+docker-build:
+    docker build -t {{image_name}} docker/
+
+# Garante que a imagem existe e roda os testes de forma isolada
+test-docker:
+    @docker image inspect {{image_name}} >/dev/null 2>&1 || just docker-build
+    docker run --rm \
+        -v "{{justfile_directory()}}/include:/workspace/include:ro" \
+        -v "{{justfile_directory()}}/src:/workspace/src:ro" \
+        -v "{{justfile_directory()}}/tests:/workspace/tests:ro" \
+        -v "{{justfile_directory()}}/docker/CMakeLists.txt:/workspace/docker/CMakeLists.txt:ro" \
+        -v {{build_vol}}:/workspace/build \
+        {{image_name}} \
+        bash -c "cmake -S /workspace/docker -B /workspace/build -G Ninja -DBUILD_TESTING=ON && cmake --build /workspace/build && ctest --test-dir /workspace/build --output-on-failure"
+
+# Limpa o cache de build do container se precisar de um build 100% do zero
+test-docker-clean:
+    docker volume rm -f {{build_vol}}
+
+build_dir := "build"
 
 teste branch='all':
-  mkdir -p bin/
-  if [ "{{branch}}" = "all" ]; then \
-    PASTAS=("unit" "func" "integration"); \
-  elif [ "{{branch}}" = "develop" ]; then \
-    PASTAS=("unit" "func"); \
-  elif [ "{{branch}}" = "staging" ]; then \
-    PASTAS=("func" "integration"); \
-  elif [ "{{branch}}" = "main" ]; then \
-    PASTAS=("integration"); \
-  fi; \
-  SUFFPASTAS=("${PASTAS[@]/#/tests/}"); \
-  {{CXX}} {{COMPILE_FLAGS}} ${SUFFPASTAS[@]/%//*.cpp} tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}};
-  ./{{BIN_DIR}}/{{APP_NAME}}
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    case "{{branch}}" in
+        all)
+            TARGETS=(tests_unit tests_func tests_integration)
+            LABELS="^(unit|func|integration)$"
+            ;;
+        develop)
+            TARGETS=(tests_unit tests_func)
+            LABELS="^(unit|func)$"
+            ;;
+        staging)
+            TARGETS=(tests_func tests_integration)
+            LABELS="^(func|integration)$"
+            ;;
+        main)
+            TARGETS=(tests_integration)
+            LABELS="^integration$"
+            ;;
+        *)
+            echo "Branch '{{branch}}' nao mapeada; executando todas as suites."
+            TARGETS=(tests_unit tests_func tests_integration)
+            LABELS="^(unit|func|integration)$"
+            ;;
+    esac
+
+    cmake -S docker/ -B {{build_dir}} -G Ninja
+    cmake --build {{build_dir}} --target "${TARGETS[@]}"
+    ctest --test-dir {{build_dir}} -L "$LABELS" --output-on-failure
 
 # Tutorial de texto de commit
 [default]
