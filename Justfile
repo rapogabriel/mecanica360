@@ -34,10 +34,10 @@ test-docker:
         -v "{{justfile_directory()}}/include:/workspace/include:ro" \
         -v "{{justfile_directory()}}/src:/workspace/src:ro" \
         -v "{{justfile_directory()}}/tests:/workspace/tests:ro" \
-        -v "{{justfile_directory()}}/docker/CMakeLists.txt:/workspace/CMakeLists.txt:ro" \
+        -v "{{justfile_directory()}}/docker/CMakeLists.txt:/workspace/docker/CMakeLists.txt:ro" \
         -v {{build_vol}}:/workspace/build \
         {{image_name}} \
-        bash -c "cmake -S /workspace -B /workspace/build -G Ninja && cmake --build /workspace/build && ctest --test-dir /workspace/build --output-on-failure"
+        bash -c "cmake -S /workspace/docker -B /workspace/build -G Ninja -DBUILD_TESTING=ON && cmake --build /workspace/build && ctest --test-dir /workspace/build --output-on-failure"
 
 # Limpa o cache de build do container se precisar de um build 100% do zero
 test-docker-clean:
