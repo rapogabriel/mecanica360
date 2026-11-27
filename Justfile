@@ -43,20 +43,39 @@ test-docker:
 test-docker-clean:
     docker volume rm -f {{build_vol}}
 
+build_dir := "build"
+
 teste branch='all':
-  mkdir -p bin/
-  if [ "{{branch}}" = "all" ]; then \
-    PASTAS=("unit" "func" "integration"); \
-  elif [ "{{branch}}" = "develop" ]; then \
-    PASTAS=("unit" "func"); \
-  elif [ "{{branch}}" = "staging" ]; then \
-    PASTAS=("func" "integration"); \
-  elif [ "{{branch}}" = "main" ]; then \
-    PASTAS=("integration"); \
-  fi; \
-  SUFFPASTAS=("${PASTAS[@]/#/tests/}"); \
-  {{CXX}} {{COMPILE_FLAGS}} ${SUFFPASTAS[@]/%//*.cpp} tests/*.cpp {{SRC_DIR}}/*.cpp -o {{BIN_DIR}}/{{APP_NAME}};
-  ./{{BIN_DIR}}/{{APP_NAME}}
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    case "{{branch}}" in
+        all)
+            TARGETS=(tests_unit tests_func tests_integration)
+            LABELS="^(unit|func|integration)$"
+            ;;
+        develop)
+            TARGETS=(tests_unit tests_func)
+            LABELS="^(unit|func)$"
+            ;;
+        staging)
+            TARGETS=(tests_func tests_integration)
+            LABELS="^(func|integration)$"
+            ;;
+        main)
+            TARGETS=(tests_integration)
+            LABELS="^integration$"
+            ;;
+        *)
+            echo "Branch '{{branch}}' nao mapeada; executando todas as suites."
+            TARGETS=(tests_unit tests_func tests_integration)
+            LABELS="^(unit|func|integration)$"
+            ;;
+    esac
+
+    cmake -S . -B {{build_dir}} -G Ninja
+    cmake --build {{build_dir}} --target "${TARGETS[@]}"
+    ctest --test-dir {{build_dir}} -L "$LABELS" --output-on-failure
 
 # Tutorial de texto de commit
 [default]
