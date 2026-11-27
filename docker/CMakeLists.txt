@@ -14,16 +14,16 @@ find_package(Catch2 3 REQUIRED)
 
 # Fontes e headers
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src/*.cpp"
 )
 file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include/*.hpp"
 )
 
 # Retira main.cpp (quando existir) e o FakeRepository da biblioteca principal
-set(MAIN_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
-set(FAKE_REPO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/FakeRepository.cpp")
+set(MAIN_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/main.cpp")
+set(FAKE_REPO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/FakeRepository.cpp")
 list(REMOVE_ITEM PROJECT_SOURCES "${MAIN_SOURCE}" "${FAKE_REPO_SOURCE}")
 
 add_library(project_lib STATIC
@@ -32,7 +32,7 @@ add_library(project_lib STATIC
 )
 
 target_include_directories(project_lib PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include"
 )
 
 target_link_libraries(project_lib PUBLIC
@@ -64,7 +64,7 @@ if(BUILD_TESTING)
 
     function(add_test_suite suite_name)
         file(GLOB_RECURSE SUITE_SOURCES CONFIGURE_DEPENDS
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/${suite_name}/*.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../tests/${suite_name}/*.cpp"
         )
 
         # Só cria o target se houver arquivos .cpp na pasta
@@ -79,6 +79,8 @@ if(BUILD_TESTING)
                 TEST_PREFIX "[${suite_name}] "
                 PROPERTIES LABELS "${suite_name}"
             )
+        else()
+            message(WARNING "Nenhum .cpp encontrado em ${CMAKE_CURRENT_SOURCE_DIR}/../tests/${suite_name}")
         endif()
     endfunction()
 
