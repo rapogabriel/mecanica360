@@ -9,21 +9,24 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Resolve o diretório raiz do projeto (pasta pai de onde está este CMakeLists.txt)
+cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH PROJECT_ROOT)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(Catch2 3 REQUIRED)
 
 # Fontes e headers
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/../src/*.cpp"
+    "${PROJECT_ROOT}/src/*.cpp"
 )
 file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/../include/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../include/*.hpp"
+    "${PROJECT_ROOT}/include/*.h"
+    "${PROJECT_ROOT}/include/*.hpp"
 )
 
 # Retira main.cpp (quando existir) e o FakeRepository da biblioteca principal
-set(MAIN_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/main.cpp")
-set(FAKE_REPO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/FakeRepository.cpp")
+set(MAIN_SOURCE "${PROJECT_ROOT}/src/main.cpp")
+set(FAKE_REPO_SOURCE "${PROJECT_ROOT}/src/FakeRepository.cpp")
 list(REMOVE_ITEM PROJECT_SOURCES "${MAIN_SOURCE}" "${FAKE_REPO_SOURCE}")
 
 add_library(project_lib STATIC
@@ -32,7 +35,7 @@ add_library(project_lib STATIC
 )
 
 target_include_directories(project_lib PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/../include"
+    "${PROJECT_ROOT}/include"
 )
 
 target_link_libraries(project_lib PUBLIC
@@ -64,7 +67,7 @@ if(BUILD_TESTING)
 
     function(add_test_suite suite_name)
         file(GLOB_RECURSE SUITE_SOURCES CONFIGURE_DEPENDS
-            "${CMAKE_CURRENT_SOURCE_DIR}/../tests/${suite_name}/*.cpp"
+            "${PROJECT_ROOT}/tests/${suite_name}/*.cpp"
         )
 
         # Só cria o target se houver arquivos .cpp na pasta
@@ -80,7 +83,7 @@ if(BUILD_TESTING)
                 PROPERTIES LABELS "${suite_name}"
             )
         else()
-            message(WARNING "Nenhum .cpp encontrado em ${CMAKE_CURRENT_SOURCE_DIR}/../tests/${suite_name}")
+            message(WARNING "Nenhum .cpp encontrado em ${PROJECT_ROOT}/tests/${suite_name}")
         endif()
     endfunction()
 
